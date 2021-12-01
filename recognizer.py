@@ -99,23 +99,15 @@ def return_matches(hashes, db):
         # (sid, db_offset - song_sampled_offset)
         yield (sid, mapper[hash])
 
-def recognizer():
+def recognize(seconds):
     config = get_config()
 
     db = SqliteDatabase()
 
-    parser = argparse.ArgumentParser(formatter_class=RawTextHelpFormatter)
-    parser.add_argument('-s', '--seconds', nargs='?')
-    args = parser.parse_args()
-
-    if not args.seconds:
-        parser.print_help()
-        sys.exit(0)
-
-    seconds = int(args.seconds)
+    seconds = int(seconds)
 
     chunksize = 2**12  # 4096
-    channels = 2#int(config['channels']) # 1=mono, 2=stereo
+    channels = 2 #int(config['channels']) # 1=mono, 2=stereo
 
     record_forever = False
     visualise_console = bool(config['mic.visualise_console'])
@@ -199,9 +191,20 @@ def recognizer():
             song['OFFSET'], song['OFFSET_SECS'],
             song['CONFIDENCE']
         ))
+
+        result = {
+            "match_found": True,
+            "song_name": song['SONG_ID'],
+            "accuracy": song['CONFIDENCE']
+        }
+        return result
     else:
         msg = ' ** not matches found at all'
         print(colored(msg, 'red'))
+        result = {
+            "match_found": False
+        }
+        return result
 
 # Entry point
 if __name__ == '__main__':
